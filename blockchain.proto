@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package main;
+
+service Blockchain {
+  rpc Get(Block) returns (Blocks);
+  rpc Announce(Block) returns (Empty);
+}
+
+message Block {
+  bytes data = 1;
+  bytes hash = 2;
+  int64 nonce = 3;
+  bytes parent_hash = 4;
+}
+
+message Blocks {
+  repeated Block blocks = 1;
+}
+
+message Empty {
+}
