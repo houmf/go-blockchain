@@ -68,10 +68,10 @@ func (p *Powork) CalcNonce(block []byte, difficulty int) []byte {
 	maxIterations := 1000000000000 //yeah a bit rough...
 	for i := 0; i < maxIterations; i++ {
 		thisHash := p.CalcHash(block, p.Current)
-		fmt.Print(i, ":") //fmt.Printf("%x", h.Sum(nil)))
-		fmt.Printf("%x\n", thisHash)
+		//fmt.Print(i, ":") //fmt.Printf("%x", h.Sum(nil)))
+		//fmt.Printf("%x\n", thisHash)
 		if IsColission(thisHash, difficulty) {
-			return thisHash
+			return p.Current
 		}
 		Increment(p.Current)
 	}
