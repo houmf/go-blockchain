@@ -10,7 +10,7 @@ service Blockchain {
 message Block {
   bytes data = 1;
   bytes hash = 2;
-  int64 nonce = 3;
+  bytes nonce = 3;
   bytes parent_hash = 4;
 }
 
