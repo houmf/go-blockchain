@@ -1,8 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
+
+	context "golang.org/x/net/context"
 )
 
 type API struct {
