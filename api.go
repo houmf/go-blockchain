@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha1"
+	"encoding/binary"
 	"fmt"
 )
 
@@ -51,14 +54,16 @@ func (a *API) Mine() {
 		nonce, diff := CalcNonce(currentLatestBlock)
 		fmt.Println("Found new block nonce=%x with difficulty=%d", nonce, diff)
 		// if the latest block is still the same
-		if string(currentLatestBlock.Hash) == string(a.LatestBlock) {
+		if string(currentLatestBlock.Hash) == string(a.LatestBlock.Hash) {
 			nb := &Block{
 				Data:       []byte{},
 				Nonce:      nonce,
 				ParentHash: currentLatestBlock.Hash,
 			}
-			// TODO serialize nb
-			// TODO nb.Hash = serialized nb
+			var buf bytes.Buffer
+			binary.Write(&buf, binary.BigEndian, nb)
+			hs := sha1.Sum(buf.Bytes())
+			nb.Hash = hs[:]
 			// TODO announce block to other peers
 		}
 	}
