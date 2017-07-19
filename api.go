@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha1"
 	"encoding/binary"
 	"fmt"
+
+	context "golang.org/x/net/context"
 )
 
 type API struct {
