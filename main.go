@@ -1,14 +1,13 @@
 package main
 
 import (
+	"crypto/rand"
 	"flag"
 	fmt "fmt"
 	"log"
 	"net"
 	"os"
 	"os/signal"
-
-	context "golang.org/x/net/context"
 
 	grpc "google.golang.org/grpc"
 )
@@ -23,13 +22,28 @@ func main() {
 	flag.StringVar(&nodePort, "nodeport", "", "Port of the node to connect")
 	flag.Parse()
 
+	data := make([]byte, 64)
+	rand.Read(data)
+
+	originBlock := &Block{
+		Hash:       []byte("origin"),
+		Nonce:      []byte{},
+		ParentHash: []byte("origin"),
+		Data:       data[:],
+	}
+
+	fmt.Printf("Origin block hash=%x\n", originBlock.Hash)
+
+	api := &API{
+		Blocks: map[string]*Block{
+			"": originBlock,
+		},
+		LatestBlock: originBlock,
+	}
+
+	go api.Mine()
+
 	go func() {
-		originBlock := &Block{
-			Hash:       []byte("origin"),
-			Nonce:      0,
-			ParentHash: []byte("origin"),
-			Data:       []byte{},
-		}
 		lis, err := net.Listen("tcp", "0.0.0.0:"+serverPort)
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
@@ -37,12 +51,7 @@ func main() {
 
 		s := grpc.NewServer()
 
-		RegisterBlockchainServer(s, &API{
-			Blocks: map[string]*Block{
-				"": originBlock,
-			},
-			LatestBlock: originBlock,
-		})
+		RegisterBlockchainServer(s, api)
 
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
@@ -56,12 +65,7 @@ func main() {
 				log.Fatalf("did not connect: %v", err)
 			}
 			defer conn.Close()
-
-			c := NewBlockchainClient(conn)
-
-			c.Announce(context.Background(), &Block{Nonce: 123})
 		}
-
 	}()
 
 	c := make(chan os.Signal, 1000)

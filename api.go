@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/rand"
 	"crypto/sha1"
 	"encoding/binary"
 	"fmt"
@@ -30,10 +31,8 @@ func (a *API) Get(ctx context.Context, block *Block) (*Blocks, error) {
 }
 
 func (a *API) Announce(ctx context.Context, block *Block) (*Empty, error) {
-	if a.blockExists(block) == true {
-		return nil, nil
-	}
 	// TODO Check if new block is valid
+	fmt.Printf("Got new block parent=%x hash=%x nonce=%x\n", block.Hash, block.Nonce, block.ParentHash)
 	phs := fmt.Sprintf("%x", block.ParentHash)
 	a.Blocks[phs] = block
 	a.LatestBlock = block
@@ -52,20 +51,27 @@ func (a *API) blockExists(block *Block) bool {
 func (a *API) Mine() {
 	for {
 		currentLatestBlock := a.LatestBlock
-		nonce, diff := CalcNonce(currentLatestBlock)
-		fmt.Println("Found new block nonce=%x with difficulty=%d", nonce, diff)
-		// if the latest block is still the same
-		if string(currentLatestBlock.Hash) == string(a.LatestBlock.Hash) {
-			nb := &Block{
-				Data:       []byte{},
-				Nonce:      nonce,
-				ParentHash: currentLatestBlock.Hash,
-			}
-			var buf bytes.Buffer
-			binary.Write(&buf, binary.BigEndian, nb)
-			hs := sha1.Sum(buf.Bytes())
-			nb.Hash = hs[:]
-			// TODO announce block to other peers
+		fmt.Printf("Trying to mine next block parent=%x\n", currentLatestBlock.Hash)
+		pow := GetPow()
+		nonce := pow.CalcNonce(currentLatestBlock.Data, 3)
+		fmt.Printf("Mined new block nonce=%x\n", nonce)
+
+		data := make([]byte, 64)
+		rand.Read(data)
+
+		nb := &Block{
+			Data:       data[:],
+			Nonce:      nonce,
+			ParentHash: currentLatestBlock.Hash,
 		}
+
+		var buf bytes.Buffer
+		binary.Write(&buf, binary.BigEndian, nb)
+		hs := sha1.Sum(buf.Bytes())
+		nb.Hash = hs[:]
+
+		// TODO announce block to other peers
+		ctx := context.Background()
+		a.Announce(ctx, nb)
 	}
 }

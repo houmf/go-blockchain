@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/sha256"
-	"fmt"
 	"hash"
 )
 
@@ -68,8 +67,6 @@ func (p *Powork) CalcNonce(block []byte, difficulty int) []byte {
 	maxIterations := 1000000000000 //yeah a bit rough...
 	for i := 0; i < maxIterations; i++ {
 		thisHash := p.CalcHash(block, p.Current)
-		//fmt.Print(i, ":") //fmt.Printf("%x", h.Sum(nil)))
-		//fmt.Printf("%x\n", thisHash)
 		if IsColission(thisHash, difficulty) {
 			return p.Current
 		}
@@ -77,19 +74,3 @@ func (p *Powork) CalcNonce(block []byte, difficulty int) []byte {
 	}
 	return p.Current
 }
-
-// func (p Pow) CalcHash([]byte) []byte {
-// 	return p.Sha.Write([]byte("hello world!\n"))
-// }
-
-// func main() {
-// 	tmp := GetPow()
-// 	//h := sha256.New()
-// 	//h.Write([]byte("hello world!\n"))
-// 	//fmt.Println("h", h)
-// 	//fmt.Printf("%x", h.Sum(nil))
-// 	//tmp := []byte{0}
-// 	block := []byte("lol")
-// 	lala := tmp.CalcNonce(block, 1)
-// 	fmt.Println("found nonce", lala)
-// }
